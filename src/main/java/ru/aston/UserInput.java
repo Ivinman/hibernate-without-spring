@@ -1,3 +1,5 @@
+//Не до конца разобрался как правильно использовать консольный ввод в тестах, поэтому тесты только для Service
+//Если возможно подскажите пожалуйста
 package ru.aston;
 
 import lombok.RequiredArgsConstructor;
@@ -210,8 +212,7 @@ public class UserInput {
 
     private boolean secondChoice(String userConfComm) {
         while (true) {
-            String comm = userConfComm;
-            switch (comm) {
+            switch (userConfComm) {
                 case ("1"):
                     return true;
                 case ("0"):
