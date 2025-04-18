@@ -59,8 +59,9 @@ public class UserInput {
                             if (!secondChoice(getUserConfInput())) {
                                 continue outerloop;
                             }
+                        } else {
+                            break;
                         }
-                        break;
                     }
                     continue;
                 case ("3"):
