@@ -10,6 +10,6 @@ public class Main {
         UserStorage userStorage = new UserStorageImp();
         Service service = new ServiceImp(userStorage);
         UserInput userInput = new UserInput(service);
-        userInput.command();
+        userInput.startMenu();
     }
 }
