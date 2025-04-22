@@ -8,6 +8,7 @@ import org.hibernate.cfg.Configuration;
 import ru.aston.model.User;
 
 import java.util.List;
+import java.util.Properties;
 
 public class UserStorageImp implements UserStorage {
     private final SessionFactory sessionFactory;
@@ -19,6 +20,17 @@ public class UserStorageImp implements UserStorage {
                 .buildSessionFactory();
         session = sessionFactory.openSession();
     }
+
+
+    public  UserStorageImp(Properties properties) {
+        this.sessionFactory = new Configuration()
+                .addAnnotatedClass(User.class)
+                .setProperties(properties)
+                .buildSessionFactory();
+        session = sessionFactory.openSession();
+    }
+
+
 
     @Override
     public void addUser(User user) {

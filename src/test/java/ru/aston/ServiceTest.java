@@ -1,134 +1,80 @@
 package ru.aston;
 
-import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.Test;
 import ru.aston.dto.UserDtoIn;
-import ru.aston.dto.UserDtoOut;
+import ru.aston.dto.UserMapper;
 import ru.aston.model.User;
 import ru.aston.service.Service;
 import ru.aston.service.ServiceImp;
 import ru.aston.storage.UserStorage;
-import ru.aston.storage.UserStorageImp;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@Transactional
 class ServiceTest {
-    private final UserStorage userStorage = new UserStorageImp();
+    private final UserStorage userStorage = mock();
     private final Service service = new ServiceImp(userStorage);
-    private UserDtoIn goodUserDtoIn1;
-    private UserDtoIn goodUserDtoIn2;
-    private UserDtoIn sameEmailUser;
 
-    @BeforeEach
-    public void setGoodUserDtoIn1() {
-        goodUserDtoIn1 = new UserDtoIn("Test_name",
-                "Test@email",
-                23);
-    }
-
-    @BeforeEach
-    public void setGoodUserDtoIn2() {
-        goodUserDtoIn2 = new UserDtoIn("Test_NAME",
-                "Test@EMAIL",
-                30);
-    }
-
-    @BeforeEach
-    public void setSameEmailUserDto() {
-        sameEmailUser = new UserDtoIn("TestName",
-                "Test@email",
-                23);
-    }
+    private final UserDtoIn goodUserDtoIn1 = new UserDtoIn("Test_name", "Test@email", 23);
+    private final UserDtoIn goodUserDtoIn2= new UserDtoIn("Test_NAME", "Test@EMAIL", 30);
+    private final UserDtoIn sameEmailUser= new UserDtoIn("TestName", "Test@email", 23);
 
     @Test
     public void addUser() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        User user = userStorage.getUser(1);
-
-        assertEquals(goodUserDtoIn1.getName(), user.getName());
-        assertEquals(goodUserDtoIn1.getEmail(), user.getEmail());
-        assertEquals(goodUserDtoIn1.getAge(), user.getAge());
+        assertTrue(service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge()));
     }
 
     @Test
     public void addBadUser() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        service.addUser(sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge());
-        List<User> users = userStorage.getUsers();
-
-        assertEquals(1, users.size());
+        when(userStorage.getUsers()).thenReturn(List.of(UserMapper.toUser(goodUserDtoIn1)));
+        assertFalse(service.addUser(sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge()));
     }
 
     @Test
     public void addMultUsers() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        service.addUser(goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge());
-        List<User> users = userStorage.getUsers();
-
-        assertEquals(2, users.size());
-        assertEquals(goodUserDtoIn1.getName(), users.getFirst().getName());
-        assertEquals(goodUserDtoIn1.getEmail(), users.getFirst().getEmail());
-        assertEquals(goodUserDtoIn1.getAge(), users.getFirst().getAge());
-        assertEquals(goodUserDtoIn2.getName(), users.get(1).getName());
-        assertEquals(goodUserDtoIn2.getEmail(), users.get(1).getEmail());
-        assertEquals(goodUserDtoIn2.getAge(), users.get(1).getAge());
+        when(userStorage.getUsers()).thenReturn(List.of(UserMapper.toUser(goodUserDtoIn1)));
+        assertTrue(service.addUser(goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge()));
     }
 
     @Test
     public void getUser() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        UserDtoOut userDtoOut = service.getUser(1);
-        UserDtoOut notAddedUser = service.getUser(2);
-
-        assertNotNull(userDtoOut);
-        assertNull(notAddedUser);
+        User user = UserMapper.toUser(goodUserDtoIn1);
+        when(userStorage.getUser(1)).thenReturn(user);
+        when(userStorage.getUser(2)).thenThrow(new NoResultException());
+        assertEquals(UserMapper.toUserDtoOut(user), service.getUser(1));
+        assertNull(service.getUser(2));
     }
 
     @Test
     public void getUsers() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        service.addUser(goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge());
-        List<UserDtoOut> users = service.getUsers();
-
-        assertEquals(2, users.size());
+        when(userStorage.getUsers()).thenReturn(List.of(UserMapper.toUser(goodUserDtoIn1), UserMapper.toUser(goodUserDtoIn2)));
+        assertEquals(2, service.getUsers().size());
     }
 
     @Test
     public void updateUser() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        service.updateUser(1, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge());
+        User user = UserMapper.toUser(goodUserDtoIn1);
+        User updatedUser = UserMapper.toUser(goodUserDtoIn2);
 
-        assertEquals(goodUserDtoIn2.getName(), userStorage.getUser(1).getName());
-        assertEquals(goodUserDtoIn2.getEmail(), userStorage.getUser(1).getEmail());
-        assertEquals(goodUserDtoIn2.getAge(), userStorage.getUser(1).getAge());
-    }
+        when(userStorage.getUsers()).thenReturn(List.of(user));
+        assertFalse(service.addUser(sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge()));
 
-    @Test
-    public void notUpdateUser() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        service.updateUser(2, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge());
+        when(userStorage.getUser(2)).thenThrow(new NoResultException());
+        assertFalse(service.updateUser(2, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge()));
 
-        assertNotEquals(goodUserDtoIn2.getName(), userStorage.getUser(1).getName());
-
-        service.addUser(sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge());
-
-        assertNotEquals(sameEmailUser.getName(), userStorage.getUser(1).getName());
+        when(userStorage.getUser(1)).thenReturn(updatedUser);
+        assertTrue(service.updateUser(1, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge()));
     }
 
     @Test
     public void deleteUser() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
-        service.deleteUser(2);
+        assertTrue(service.deleteUser(1));
 
-        assertNotNull(userStorage.getUser(1));
-
-        service.deleteUser(1);
-
-        assertEquals(0, userStorage.getUsers().size());
+        doThrow(NoResultException.class).when(userStorage).deleteUser(2);
+        assertFalse(service.deleteUser(2));
     }
 
 }

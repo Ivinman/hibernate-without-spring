@@ -55,19 +55,13 @@ public class ServiceImp implements Service {
     public boolean updateUser(Integer userId, String newUserName, String newUserEmail, Integer newUserAge) {
         try {
             User user = userStorage.getUser(userId);
-            UserDtoIn userDtoIn = new UserDtoIn(newUserName, newUserEmail, newUserAge);
-            System.out.println(newUserEmail);
-            for (User userFromDB : userStorage.getUsers()) {
-                if (userFromDB.getEmail().equals(newUserEmail)) {
-                    System.out.println("Пользователь с такой почтой уже есть");
-                    log.info("Пользователь с такой почтой уже есть");
-                    return false;
-                }
+            UserDtoIn userDtoIn = getUserDtoIn(newUserName, newUserEmail, newUserAge);
+            if (userDtoIn == null) {
+                return false;
             }
             user.setName(userDtoIn.getName());
             user.setEmail(userDtoIn.getEmail());
             user.setAge(userDtoIn.getAge());
-            System.out.println(user.getEmail());
             userStorage.updateUser(userId, user);
             log.info("Данные пользователя с id = " + userId + " были обновлены");
             return true;
@@ -77,8 +71,10 @@ public class ServiceImp implements Service {
         }
     }
 
+    @Override
     public boolean deleteUser(Integer userId) {
         try {
+            userStorage.getUser(userId);
             userStorage.deleteUser(userId);
             return true;
         } catch (NoResultException e) {

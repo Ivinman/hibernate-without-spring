@@ -14,6 +14,6 @@ public class UserDtoOut {
         return "Имя: " + name + "\n"
                 + "Почта: " + email + "\n"
                 + "Возраст: " + age + "\n"
-                + "Дата создания: " + created_at;
+                + "Дата создания: " + created_at +"\n";
     }
 }
