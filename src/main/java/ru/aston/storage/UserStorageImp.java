@@ -21,7 +21,6 @@ public class UserStorageImp implements UserStorage {
         session = sessionFactory.openSession();
     }
 
-
     public  UserStorageImp(Properties properties) {
         this.sessionFactory = new Configuration()
                 .addAnnotatedClass(User.class)
@@ -29,8 +28,6 @@ public class UserStorageImp implements UserStorage {
                 .buildSessionFactory();
         session = sessionFactory.openSession();
     }
-
-
 
     @Override
     public void addUser(User user) {

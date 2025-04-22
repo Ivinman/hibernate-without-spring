@@ -25,6 +25,9 @@ class ServiceTest {
     @Test
     public void addUser() {
         assertTrue(service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge()));
+
+        when(userStorage.getUsers()).thenReturn(List.of(UserMapper.toUser(goodUserDtoIn1)));
+        assertFalse(service.addUser(sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge()));
     }
 
     @Test
@@ -76,5 +79,4 @@ class ServiceTest {
         doThrow(NoResultException.class).when(userStorage).deleteUser(2);
         assertFalse(service.deleteUser(2));
     }
-
 }
