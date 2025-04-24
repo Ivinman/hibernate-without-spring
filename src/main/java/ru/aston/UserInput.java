@@ -1,9 +1,8 @@
-//Не до конца разобрался как правильно использовать консольный ввод в тестах, поэтому тесты только для Service
-//Если возможно подскажите пожалуйста
 package ru.aston;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.aston.dto.UserDtoIn;
 import ru.aston.service.Service;
 
 import java.util.Scanner;
@@ -11,7 +10,6 @@ import java.util.Scanner;
 @Slf4j
 @RequiredArgsConstructor
 public class UserInput {
-    //private final Scanner scan = new Scanner(System.in);
     private final Service service;
 
     public void startMenu(Scanner scan) {
@@ -52,26 +50,19 @@ public class UserInput {
     }
 
     private void addUser(Scanner scanner) {
-        String name = getUserNameInput(scanner);
-        if (name == null) {
+        UserDtoIn userDtoIn = getUserDtoIn(scanner);
+        if (userDtoIn == null) {
             return;
         }
-        String email = getUserEmailInput(scanner);
-        if (email == null) {
-            return;
-        }
-        Integer age = getUserAgeInput(scanner);
-        if (age == null) {
-            return;
-        }
-        while (!service.addUser(name, email, age)) {
+        while (!service.addUser(userDtoIn)) {
             if (!secondChoice(scanner)) {
                 return;
             } else {
-                email = getUserEmailInput(scanner);
+                String email = getUserEmailInput(scanner);
                 if (email == null) {
                     return;
                 }
+                userDtoIn.setEmail(email);
             }
         }
     }
@@ -108,26 +99,19 @@ public class UserInput {
                 break;
             }
         }
-        String newName = getUserNameInput(scanner);
-        if (newName == null) {
+        UserDtoIn newUserDtoIn = getUserDtoIn(scanner);
+        if (newUserDtoIn == null) {
             return;
         }
-        String newEmail = getUserEmailInput(scanner);
-        if (newEmail == null) {
-            return;
-        }
-        Integer newAge = getUserAgeInput(scanner);
-        if (newAge == null) {
-            return;
-        }
-        while (!service.updateUser(userIdDb, newName, newEmail, newAge)) {
+        while (!service.updateUser(userIdDb, newUserDtoIn)) {
             if (!secondChoice(scanner)) {
                 return;
             } else {
-                newEmail = getUserEmailInput(scanner);
+                String newEmail = getUserEmailInput(scanner);
                 if (newEmail == null) {
                     return;
                 }
+                newUserDtoIn.setEmail(newEmail);
             }
         }
     }
@@ -239,4 +223,26 @@ public class UserInput {
             }
         }
     }
+
+    private UserDtoIn getUserDtoIn(Scanner scanner) {
+        String name = getUserNameInput(scanner);
+        if (name == null) {
+            return null;
+        }
+        String email = getUserEmailInput(scanner);
+        if (email == null) {
+            return null;
+        }
+        Integer age = getUserAgeInput(scanner);
+        if (age == null) {
+            return null;
+        }
+        UserDtoIn userDtoIn = new UserDtoIn(name, age);
+        userDtoIn.setEmail(email);
+        return userDtoIn;
+    }
+    
+//    private Integer get() {
+//
+//    }
 }

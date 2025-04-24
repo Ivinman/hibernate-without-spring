@@ -18,17 +18,19 @@ public class InputTest {
     public void addUser() {
         when(scanner.nextLine()).thenReturn("1").thenReturn("name").thenReturn("@email").thenReturn("23").thenReturn("0");
         userInput.startMenu(scanner);
-        verify(service, times(1)).addUser(anyString(), anyString(), anyInt());
+        verify(service, times(1)).addUser(any());
     }
 
     @ParameterizedTest
     @CsvSource({"n ame, @email, 23",
+            "n34ame, @email, 23",
             "name, email, 23",
+            "name, @e mail, 23",
             "name, @email, sd"})
     public void notAddUser(String name, String email, String age) {
         when(scanner.nextLine()).thenReturn("1").thenReturn(name).thenReturn(email).thenReturn(age).thenReturn("0");
         userInput.startMenu(scanner);
-        verify(service, times(0)).addUser(anyString(), anyString(), anyInt());
+        verify(service, times(0)).addUser(any());
     }
 
     @Test
@@ -36,16 +38,16 @@ public class InputTest {
         when(scanner.nextLine()).thenReturn("1").thenReturn("n ame").thenReturn("1").thenReturn("name").
                 thenReturn("@email").thenReturn("23").thenReturn("0");
         userInput.startMenu(scanner);
-        verify(service, times(1)).addUser(anyString(), anyString(), anyInt());
+        verify(service, times(1)).addUser(any());
     }
 
     @Test
     public void addSameEmailUser() {
         when(scanner.nextLine()).thenReturn("1").thenReturn("name").thenReturn("@email").thenReturn("23")
                 .thenReturn("1").thenReturn("@email").thenReturn("0");
-        when(service.addUser(anyString(), anyString(), anyInt())).thenReturn(false).thenReturn(true);
+        when(service.addUser(any())).thenReturn(false).thenReturn(true);
         userInput.startMenu(scanner);
-        verify(service, times(2)).addUser(anyString(), anyString(), anyInt());
+        verify(service, times(2)).addUser(any());
     }
 
     @Test

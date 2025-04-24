@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class UserDtoIn {
     private final String name;
-    private final String email;
+    private String email;
     private final Integer age;
 }

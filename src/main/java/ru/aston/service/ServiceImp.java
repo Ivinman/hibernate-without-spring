@@ -18,9 +18,8 @@ public class ServiceImp implements Service {
     private final UserStorage userStorage;
 
     @Override
-    public boolean addUser(String userName, String userEmail, Integer userAge) {
-        UserDtoIn userDtoIn = getUserDtoIn(userName, userEmail, userAge);
-        if (userDtoIn == null) {
+    public boolean addUser(UserDtoIn userDtoIn) {
+        if (!checkDtoIn(userDtoIn)) {
             return false;
         }
         User user = UserMapper.toUser(userDtoIn);
@@ -52,16 +51,15 @@ public class ServiceImp implements Service {
     }
 
     @Override
-    public boolean updateUser(Integer userId, String newUserName, String newUserEmail, Integer newUserAge) {
+    public boolean updateUser(Integer userId, UserDtoIn newUserDtoIn) {
         try {
             User user = userStorage.getUser(userId);
-            UserDtoIn userDtoIn = getUserDtoIn(newUserName, newUserEmail, newUserAge);
-            if (userDtoIn == null) {
+            if (!checkDtoIn(newUserDtoIn)) {
                 return false;
             }
-            user.setName(userDtoIn.getName());
-            user.setEmail(userDtoIn.getEmail());
-            user.setAge(userDtoIn.getAge());
+            user.setName(newUserDtoIn.getName());
+            user.setEmail(newUserDtoIn.getEmail());
+            user.setAge(newUserDtoIn.getAge());
             userStorage.updateUser(userId, user);
             log.info("Данные пользователя с id = " + userId + " были обновлены");
             return true;
@@ -83,14 +81,14 @@ public class ServiceImp implements Service {
         }
     }
 
-    private UserDtoIn getUserDtoIn(String userName, String userEmail, Integer userAge) {
+    private boolean checkDtoIn(UserDtoIn userDtoIn) {
         for (User user : userStorage.getUsers()) {
-            if (user.getEmail().equals(userEmail)) {
+            if (user.getEmail().equals(userDtoIn.getEmail())) {
                 System.out.println("Пользователь с такой почтой уже есть");
                 log.info("Пользователь с такой почтой уже есть");
-                return null;
+                return false;
             }
         }
-        return new UserDtoIn(userName, userEmail, userAge);
+        return true;
     }
 }

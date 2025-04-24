@@ -21,19 +21,21 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Slf4j
 public class ServiceDaoTest {
     private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
     private static final Properties properties = new Properties();
     private final UserStorage userStorage = new UserStorageImp(properties);
     private final Service service = new ServiceImp(userStorage);
 
-    private final UserDtoIn goodUserDtoIn1 = new UserDtoIn("Test_name", "Test@email", 23);
-    private final UserDtoIn goodUserDtoIn2= new UserDtoIn("Test_NAME", "Test@EMAIL", 30);
-    private final UserDtoIn sameEmailUser= new UserDtoIn("TestName", "Test@email", 23);
+    private static final UserDtoIn goodUserDtoIn1 = new UserDtoIn("Test_name", 23);
+    private static final UserDtoIn goodUserDtoIn2= new UserDtoIn("Test_NAME", 30);
+    private static final UserDtoIn sameEmailUser= new UserDtoIn("TestName", 23);
 
     @BeforeAll
     public static void setUp() throws Exception {
+        goodUserDtoIn1.setEmail("Test@email");
+        goodUserDtoIn2.setEmail("Test@EMAIL");
+        sameEmailUser.setEmail("Test@email");
         try {
             postgreSQLContainer.start();
             InputStream inputStream = new FileInputStream("src\\test\\resources\\hibernateTest.properties");
@@ -42,7 +44,7 @@ public class ServiceDaoTest {
             properties.setProperty("hibernate.connection.username", postgreSQLContainer.getUsername());
             properties.setProperty("hibernate.connection.password", postgreSQLContainer.getPassword());
         } catch (FileNotFoundException e) {
-            log.info("Файл по пути \"src\\test\\resources\\hibernateTest.properties\" не был найден");
+            e.getLocalizedMessage();
         }
     }
 
@@ -53,14 +55,14 @@ public class ServiceDaoTest {
 
     @BeforeEach
     public void addFirstUser() {
-        service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge());
+        service.addUser(goodUserDtoIn1);
     }
 
     @Test
     public void addUser() {
         assertEquals(1, userStorage.getUsers().size());
 
-        service.addUser(goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge());
+        service.addUser(goodUserDtoIn2);
         User firstUser = userStorage.getUser(1);
         User secondUser = userStorage.getUser(2);
         assertEquals(firstUser.getName(), goodUserDtoIn1.getName());
@@ -84,17 +86,17 @@ public class ServiceDaoTest {
 
     @Test
     public void getUsers() {
-        service.addUser(goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge());
+        service.addUser(goodUserDtoIn2);
         assertEquals(2, userStorage.getUsers().size());
     }
 
     @Test
     public void updateUser() {
-        assertFalse(service.updateUser(2, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge()));
-        assertFalse(service.updateUser(1, sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge()));
+        assertFalse(service.updateUser(2, goodUserDtoIn2));
+        assertFalse(service.updateUser(1, sameEmailUser));
 
         String creationDate = service.getUser(1).getCreated_at();
-        service.updateUser(1, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge());
+        service.updateUser(1, goodUserDtoIn2);
         UserDtoOut userDtoOut = service.getUser(1);
         assertEquals(goodUserDtoIn2.getName(), userDtoOut.getName());
         assertEquals(goodUserDtoIn2.getEmail(), userDtoOut.getEmail());
