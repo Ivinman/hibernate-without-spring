@@ -1,6 +1,7 @@
 package ru.aston;
 
 import jakarta.persistence.NoResultException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.aston.dto.UserDtoIn;
 import ru.aston.dto.UserMapper;
@@ -18,25 +19,35 @@ class ServiceTest {
     private final UserStorage userStorage = mock();
     private final Service service = new ServiceImp(userStorage);
 
-    private final UserDtoIn goodUserDtoIn1 = new UserDtoIn("Test_name", "Test@email", 23);
-    private final UserDtoIn goodUserDtoIn2= new UserDtoIn("Test_NAME", "Test@EMAIL", 30);
-    private final UserDtoIn sameEmailUser= new UserDtoIn("TestName", "Test@email", 23);
+    private static final UserDtoIn goodUserDtoIn1 = new UserDtoIn("Test_name", 23);
+    private static final UserDtoIn goodUserDtoIn2= new UserDtoIn("Test_NAME", 30);
+    private static final UserDtoIn sameEmailUser= new UserDtoIn("TestName", 23);
+
+    @BeforeAll
+    public static void setUp() {
+        goodUserDtoIn1.setEmail("Test@email");
+        goodUserDtoIn2.setEmail("Test@EMAIL");
+        sameEmailUser.setEmail("Test@email");
+    }
 
     @Test
     public void addUser() {
-        assertTrue(service.addUser(goodUserDtoIn1.getName(), goodUserDtoIn1.getEmail(), goodUserDtoIn1.getAge()));
+        assertTrue(service.addUser(goodUserDtoIn1));
+
+        when(userStorage.getUsers()).thenReturn(List.of(UserMapper.toUser(goodUserDtoIn1)));
+        assertFalse(service.addUser(sameEmailUser));
     }
 
     @Test
     public void addBadUser() {
         when(userStorage.getUsers()).thenReturn(List.of(UserMapper.toUser(goodUserDtoIn1)));
-        assertFalse(service.addUser(sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge()));
+        assertFalse(service.addUser(sameEmailUser));
     }
 
     @Test
     public void addMultUsers() {
         when(userStorage.getUsers()).thenReturn(List.of(UserMapper.toUser(goodUserDtoIn1)));
-        assertTrue(service.addUser(goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge()));
+        assertTrue(service.addUser(goodUserDtoIn2));
     }
 
     @Test
@@ -60,13 +71,13 @@ class ServiceTest {
         User updatedUser = UserMapper.toUser(goodUserDtoIn2);
 
         when(userStorage.getUsers()).thenReturn(List.of(user));
-        assertFalse(service.addUser(sameEmailUser.getName(), sameEmailUser.getEmail(), sameEmailUser.getAge()));
+        assertFalse(service.addUser(sameEmailUser));
 
         when(userStorage.getUser(2)).thenThrow(new NoResultException());
-        assertFalse(service.updateUser(2, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge()));
+        assertFalse(service.updateUser(2, goodUserDtoIn2));
 
         when(userStorage.getUser(1)).thenReturn(updatedUser);
-        assertTrue(service.updateUser(1, goodUserDtoIn2.getName(), goodUserDtoIn2.getEmail(), goodUserDtoIn2.getAge()));
+        assertTrue(service.updateUser(1, goodUserDtoIn2));
     }
 
     @Test
@@ -76,5 +87,4 @@ class ServiceTest {
         doThrow(NoResultException.class).when(userStorage).deleteUser(2);
         assertFalse(service.deleteUser(2));
     }
-
 }
